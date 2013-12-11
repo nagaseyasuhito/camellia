@@ -12,9 +12,7 @@ import com.github.nagaseyasuhito.camellia.MethodValidationHelper;
 import com.github.nagaseyasuhito.camellia.dao.UserDao;
 
 public class UserServiceTest {
-	private MethodValidationHelper methodValidationHelper = new MethodValidationHelper();
-
-	private UserService userService = this.methodValidationHelper.create(UserService.class);
+	private UserService userService = MethodValidationHelper.create(UserService.class);
 
 	@Mocked
 	private UserDao userDao;

@@ -15,13 +15,11 @@ import javax.validation.executable.ExecutableValidator;
 
 import lombok.SneakyThrows;
 
-import org.hibernate.validator.HibernateValidator;
-
 public class MethodValidationHelper {
-	private ExecutableValidator executableValidator = Validation.byProvider(HibernateValidator.class).configure().buildValidatorFactory().getValidator().forExecutables();
+	private static ExecutableValidator VALIDATOR = Validation.byDefaultProvider().configure().buildValidatorFactory().getValidator().forExecutables();
 
 	@SneakyThrows
-	public <T> T create(Class<T> clazz) {
+	public static <T> T create(Class<T> clazz) {
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.setSuperclass(clazz);
 
@@ -30,7 +28,7 @@ public class MethodValidationHelper {
 		((ProxyObject) object).setHandler(new MethodHandler() {
 			@Override
 			public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-				Set<ConstraintViolation<Object>> parameterViolations = MethodValidationHelper.this.executableValidator.validateParameters(self, thisMethod, args);
+				Set<ConstraintViolation<Object>> parameterViolations = VALIDATOR.validateParameters(self, thisMethod, args);
 				if (!parameterViolations.isEmpty()) {
 					throw new ConstraintViolationException(parameterViolations);
 				}
@@ -42,7 +40,7 @@ public class MethodValidationHelper {
 					throw e.getCause();
 				}
 
-				Set<ConstraintViolation<Object>> returnViolations = MethodValidationHelper.this.executableValidator.validateReturnValue(self, thisMethod, result);
+				Set<ConstraintViolation<Object>> returnViolations = VALIDATOR.validateReturnValue(self, thisMethod, result);
 				if (!returnViolations.isEmpty()) {
 					throw new ConstraintViolationException(returnViolations);
 				}
