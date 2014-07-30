@@ -21,11 +21,19 @@
 		<tag>HEAD</tag>
 	</scm>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repository.codehaus.org</id>
+			<url>http://repository.codehaus.org</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<properties>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>utf-8</project.reporting.outputEncoding>
 		<m2eclipse.wtp.contextRoot>/</m2eclipse.wtp.contextRoot>
 		<jmockit.version>1.4</jmockit.version>
+		<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/repository</altDeploymentRepository>
 	</properties>
 
 	<build>
@@ -63,6 +71,49 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<version>1.4.9</version>
+				<executions>
+					<execution>
+						<phase>deploy</phase>
+						<goals>
+							<goal>redeploy</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<container>
+						<containerId>glassfish4x</containerId>
+						<type>remote</type>
+					</container>
+					<configuration>
+						<type>runtime</type>
+						<properties>
+							<cargo.hostname>localhost</cargo.hostname>
+							<cargo.remote.username>admin</cargo.remote.username>
+							<cargo.remote.password></cargo.remote.password>
+							<cargo.remote.port>4848</cargo.remote.port>
+							<cargo.glassfish.domain.name>domain1</cargo.glassfish.domain.name>
+						</properties>
+					</configuration>
+					<deployables>
+						<deployable>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>${project.artifactId}</artifactId>
+							<type>war</type>
+						</deployable>
+					</deployables>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.glassfish.deployment</groupId>
+						<artifactId>deployment-client</artifactId>
+						<version>3.2-b06</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.15</version>
@@ -79,6 +130,11 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>2.16</version>
+				<configuration>
+					<includes>
+						<include>**/*IT.java</include>
+					</includes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -93,10 +149,9 @@
 				<version>3.3</version>
 				<executions>
 					<execution>
-						<id>attach-site</id>
 						<phase>prepare-package</phase>
 						<goals>
-							<goal>jar</goal>
+							<goal>site</goal>
 						</goals>
 					</execution>
 				</executions>
